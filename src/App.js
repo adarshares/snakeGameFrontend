@@ -14,13 +14,69 @@ export default class App extends Component {
 
   constructor(props){
     super(props);
-    this.state = {date:new Date(),isloggedin:false};
+    this.state = {date:new Date(),isloggedin:false,token:""};
   }
 
   checklogin=()=>{
-    // axios.get(url+"/test").then((response)=>{
-    //   console.log(response);
-    // }).catch(error => console.error("error"+error));
+    axios.post('http://127.0.0.1:5000/api/score/mxscore',{
+        'token':localStorage.getItem('token'),
+      }
+      // ,
+      // {
+      //   withCredentials:true,//uncomment for storing in cookies
+      // }
+      ).then((response) => {
+
+        this.setState({
+          isloggedin: true,
+        });
+
+      }).catch((error) => {
+        console.log(error);
+      });
+  }
+
+  setToken = (response) => {
+    localStorage.setItem('token',response.data.token);
+  }
+
+  removeToken = () => {
+    localStorage.removeItem('token');
+    console.log('hataya');
+  }
+
+  makeloggedin = (response) => {
+    this.setToken(response);
+    this.setState({
+      isloggedin: true,
+      token: response.data.token,
+    });
+  }
+
+  makelogout = () => {
+    try{
+      this.removeToken();
+    }
+    catch{
+      console.log('no token present');
+    }
+    axios.post('http://127.0.0.1:5000/api/deauth',
+    null
+    // ,{
+    //   withCredentials:true,  //for sending cookies
+    // }
+    ).then((response) => {
+      console.log("response me aaya");
+      console.log(response);
+    }).catch((error) => {
+      console.log("error me aaya");
+      console.log(error)
+    });
+
+    this.setState({
+      isloggedin: false,
+      token: ''
+    });
   }
 
   componentDidMount(){
@@ -29,21 +85,19 @@ export default class App extends Component {
 
   render() {
 
+    let screenToDisplay;
 
+    if(!this.state.isloggedin){
+      screenToDisplay = <Loginscreen makeloggedin = {this.makeloggedin}/>;
+    }
+    else{
+      screenToDisplay = <Snakeplay makelogout = {this.makelogout}/>;
+    }
 
     return (
       <div className="App">
-      <div>
+        {screenToDisplay}
       </div>
-      <div>
-        <Loginscreen isloggedin = {this.state.isloggedin}></Loginscreen>
-      </div>
-      <div>
-        {/* <Snakeplay></Snakeplay> */}
-      </div>
-
-
-    </div>
     )
   }
 }

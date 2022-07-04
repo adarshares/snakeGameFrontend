@@ -13,12 +13,13 @@ export default class Loginscreen extends Component {
     this.state={
       username:'',
       password:'',
-      em:''
+      em:'',
+      issignin:true,
     }
   }
 
   handleLogin = (response) =>{
-    this.props.is
+    this.props.makeloggedin(response);
   }
 
   handleErrorMessage = (error) => {
@@ -32,11 +33,37 @@ export default class Loginscreen extends Component {
     {
       username:this.state.username,
       password:this.state.password
-    }).then((response) => {
-      //this.handleLogin(response);
+    }//,
+    // {
+    //   withCredentials:true,//for storing and sending cookies
+    // }
+    ).then((response) => {
+      this.handleLogin(response);
+      console.log(response);
+      //console.log("response me aaya");
     }).catch((error) => {
       this.handleErrorMessage(error.response.data.message);
-      this.handleLogin(error);
+      //console.log("error me aaya");
+    });
+  }
+
+  handleSignup = () => {
+    axios.post('http://127.0.0.1:5000/api/signup/sup',
+    {
+      username:this.state.username,
+      password:this.state.password
+    }//,
+    // {
+    //   withCredentials:true,//for storing and sending cookies
+    // }
+    ).then((response) => {
+      this.handleLogin(response);
+      console.log(response);
+      this.props.makeloggedin(response);
+      //console.log("response me aaya");
+    }).catch((error) => {
+      this.handleErrorMessage(error.response.data.message);
+      //console.log("error me aaya");
     });
   }
 
@@ -57,31 +84,32 @@ export default class Loginscreen extends Component {
 
   render() {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', paddingTop: "20%" }}>
-        <div className="card" style={{ width: '50%' }}>
+          <div style={{ display: 'flex', justifyContent: 'center', paddingTop: "20%" }}>
+            <div className="card" style={{ width: '50%' }}>
 
-          <div className='card-body'>
-            <form>
-              <div className="form-outline mb-4">
-                <input type="username" id="form2Example1" className="form-control" onChange={this.handleUsername} />
-                <label className="form-label" htmlFor="form2Example1">Username</label>
+              <div className='card-body'>
+                <form>
+                  <div className="form-outline mb-4">
+                    <input type="username" id="form2Example1" className="form-control" onChange={this.handleUsername} />
+                    <label className="form-label" htmlFor="form2Example1">Username</label>
+                  </div>
+
+                  <div className="form-outline mb-4">
+                    <input type="password" id="form2Example2" className="form-control" onChange={this.handlePassword}/>
+                    <label className="form-label" htmlFor="form2Example2">Password</label>
+                  </div>
+
+
+                  <button type="button" className="btn btn-primary btn-block mb-4" onClick={this.handleSubmit}>Sign in</button>
+
+                  <div className="text-center">
+                    <p>{this.state.em}</p>
+                  </div>
+                  <button type="button" className="btn btn-primary btn-block mb-4" onClick={this.handleSignup}>Sign up</button>
+                </form>
               </div>
-
-              <div className="form-outline mb-4">
-                <input type="password" id="form2Example2" className="form-control" onChange={this.handlePassword}/>
-                <label className="form-label" htmlFor="form2Example2">Password</label>
-              </div>
-
-
-              <button type="button" className="btn btn-primary btn-block mb-4" onClick={this.handleSubmit}>Sign in</button>
-
-              <div className="text-center">
-                <p>{this.state.em}</p>
-              </div>
-            </form>
+            </div>
           </div>
-        </div>
-      </div>
     )
   }
 }

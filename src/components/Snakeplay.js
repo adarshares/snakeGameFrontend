@@ -2,6 +2,7 @@ import React, { Component } from 'react'
 import './Snakeplay.css'
 import Snake from './Snake';
 import Food from './Food';
+import axios from 'axios';
 
 
 
@@ -34,7 +35,9 @@ let initialstate = {
   speed:200,
   direction:2,
   score:0,
-  ispaused:false
+  ispaused:false,
+  maxscoreuser:"",
+  maxscore:0,
 }
 
 
@@ -44,8 +47,8 @@ const prevmessage = <div>
 
 export default class Snakeplay extends Component {
 
-    constructor(){
-        super();
+    constructor(props){
+        super(props);
         this.state = initialstate;
     }
 
@@ -137,12 +140,54 @@ export default class Snakeplay extends Component {
       }
     }
 
+    getmaxscore = () => {
+      axios.post('http://127.0.0.1:5000/api/score/mxscore',{
+        'token':localStorage.getItem('token'),
+      }
+      // ,
+      // {
+      //   withCredentials:true,//uncomment for storing in cookies
+      // }
+      ).then((response) => {
+
+        this.setState({
+          maxscoreuser: response.data.username,
+          maxscore: response.data.maxscore,
+        });
+
+      }).catch((error) => {
+        this.props.makelogout(error);
+      });
+    }
+
+    sendmaxscore = (score) => {
+      axios.post('http://127.0.0.1:5000/api/setscore/ss',{
+        'token':localStorage.getItem('token'),
+        'score':score,
+      }).then((response) => {
+
+        this.setState({
+          maxscoreuser: response.data.username,
+          maxscore: response.data.maxscore,
+        });
+
+      }).catch((error) => {
+        this.props.makelogout(error);
+      });
+    }
+
+
+
     ongameover=()=>{
       alert("game over");
+      this.sendmaxscore(this.state.score);
       while(this.state.snakebody.length!=1){
         this.state.snakebody.pop();
       }
       this.setState(initialstate);
+      //send your maxscore
+
+      this.getmaxscore();
     }
 
     checkover=()=>{
@@ -181,10 +226,12 @@ export default class Snakeplay extends Component {
         }
       }, this.state.speed);
       document.onkeydown = this.checkkey;
+
     }
 
     componentWillUnmount(){
       clearInterval(this.timerID);
+      this.getmaxscore();
     }
 
     onbuttonclick = () => {
@@ -214,7 +261,8 @@ export default class Snakeplay extends Component {
 
 
         <div>
-          <h1>your current score {this.state.score}</h1>
+          <h1>user with max score {this.state.maxscoreuser}</h1>
+          <h1>max score {this.state.maxscore}</h1>
           <h1>your current score {this.state.score}</h1>
           <div className="game-area">
               <Snake snakepos={this.state.snakehead} headcolor={"blue"}></Snake>
@@ -223,6 +271,7 @@ export default class Snakeplay extends Component {
           </div>
         </div>
         <button type="button" className="btn btn-success" onClick={this.onbuttonclick}>{this.state.ispaused?"Start":"Pause"}</button>
+        <button type="button" className="btn btn-danger" onClick={this.props.makelogout}>logout</button>
 
 
       </div>
